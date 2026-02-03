@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "default": {
+      "url": "http://tools:8000/sse"
+    }
+  }
+}

@@ -12,5 +12,6 @@ pydantic_core==2.41.5
 requests_cache
 retry_requests
 pandas
+mcp
 typing-inspection==0.4.2
 typing_extensions==4.15.0
