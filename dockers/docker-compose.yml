@@ -23,17 +23,30 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - OLLAMA_HOST=0.0.0.0
     depends_on:
-      - tools
-  tools:
+      - weather_tools
+      - search_tools
+  weather_tools:
     build:
       context: ..
       dockerfile: ./dockers/Dockerfile
     volumes:
       - ..:/workspaces/ollama_mcp:cached
       - ollama-data:/root/.ollama
-    command: python /workspaces/ollama_mcp/tools/main.py
+    command: python /workspaces/ollama_mcp/weather_tools/main.py
     ports:
       - "8000:8000"
+    security_opt:
+      - apparmor:unconfined
+  search_tools:
+    build:
+      context: ..
+      dockerfile: ./dockers/Dockerfile
+    volumes:
+      - ..:/workspaces/ollama_mcp:cached
+      - ollama-data:/root/.ollama
+    command: python /workspaces/ollama_mcp/search_tools/main.py
+    ports:
+      - "8001:8001"
     security_opt:
       - apparmor:unconfined
 

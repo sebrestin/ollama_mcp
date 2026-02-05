@@ -1,3 +1,4 @@
+"""Entry point for the Ollama MCP Agent."""
 import ollama
 
 

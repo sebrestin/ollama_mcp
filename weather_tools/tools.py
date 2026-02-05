@@ -12,9 +12,13 @@ def get_weather(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     """ Get the weather for a location. Can only get weather at most current date.
     
         :param lat: Latitude of the location
+        :type lat: float
         :param lon: Longitude of the location
+        :type lon: float
         :param start_date: Start date of the weather data, format YYYY-MM-DD
+        :type start_date: str
         :param end_date: End date of the weather data, format YYYY-MM-DD
+        :type end_date: str
 
         :return: DataFrame containing the weather data
     """

@@ -1,23 +1,56 @@
 import ollama
+from typing import Any
 
 class Agent:
+    """
+    An AI Agent capable of conversing and using tools via the Model Context Protocol (MCP).
+    
+    This agent uses a local LLM via Ollama and connects to MCP servers to execute tools.
+    It supports a thinking mode to display reasoning and manages a conversation history.
+    """
 
     STOP_MARK = "stop"
 
     def __init__(self, model: str, thinking: bool, tools: list):
+        """
+        Initialize the Agent.
+
+        :param model: The name of the Ollama model to use
+        :type model: str
+        :param thinking: Whether to enable thinking/reasoning mode
+        :type thinking: bool
+        :param tools: A list of tool wrappers available to the agent
+        :type tools: list
+        """
         self._model = model
         self._thinking = thinking
         self._tools = {tool.__name__: tool for tool in tools}
         self._context = list()
     
-    def start(self):
+    def start(self) -> None:
+        """
+        Start the interactive agent loop.
+
+        Continuously prompts the user for input and processes requests until the
+        stop marker is received.
+        """
         while True:
             message = input("What's on your mind? \n")
             if message == self.STOP_MARK:
                 break
             self.process_request(message)
 
-    def process_request(self, message):
+    def process_request(self, message: str) -> Any:
+        """
+        Process a single user request.
+
+        Sends the message to the LLM, handles tool calls if generated, and manages
+        the conversation context.
+
+        :param message: The user's input message
+        :type message: str
+        :return: The final response object from Ollama
+        """
         self._context.append({"role": "user", "content": message})
 
         while True:

@@ -1,15 +1,11 @@
-import pandas as pd
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-
+"""MCP Server for Weather Tools."""
 from mcp.server.fastmcp import FastMCP
 
 import tools as tools
 
 
-# Initialize FastMCP server``
-mcp = FastMCP("ollama-tools-server", host="0.0.0.0", port=8000)
+# Initialize FastMCP server
+mcp = FastMCP("weather-tools-server", host="0.0.0.0", port=8000)
 
 
 mcp.add_tool(tools.get_weather)

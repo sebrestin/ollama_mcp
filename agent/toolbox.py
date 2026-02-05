@@ -1,6 +1,6 @@
 import asyncio
 import inspect
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 
 import sys
 import json
@@ -10,10 +10,15 @@ from mcp.client.sse import sse_client
 from mcp.client.session import ClientSession
 
 class MCPClient:
-    def __init__(self, server_url: str):
+    def __init__(self, server_url: str) -> None:
+        """Initialize MCPClient.
+        
+        :param server_url: The URL of the MCP server's SSE endpoint
+        :type server_url: str
+        """
         self.server_url = server_url
 
-    async def list_tools(self):
+    async def list_tools(self) -> Any:
         """Fetches the list of tools from the MCP server."""
         # Note: We create a new session just to list tools.
         # Ideally we'd keep a persistent session, but for this simple client 
@@ -25,7 +30,14 @@ class MCPClient:
                 return result.tools
 
     async def call_tool(self, name: str, arguments: dict) -> Any:
-        """Calls a tool on the MCP server."""
+        """Calls a tool on the MCP server.
+        
+        :param name: The name of the tool to call
+        :type name: str
+        :param arguments: The arguments to pass to the tool
+        :type arguments: dict
+        :return: The text content from the tool result
+        """
         async with sse_client(self.server_url) as streams:
             async with ClientSession(streams[0], streams[1]) as session:
                 await session.initialize()
@@ -51,7 +63,14 @@ class ToolWrapper:
         "object": dict,
     }
 
-    def __init__(self, client: MCPClient, tool_info: Any):
+    def __init__(self, client: MCPClient, tool_info: Any) -> None:
+        """Initialize the ToolWrapper with client and tool metadata.
+        
+        :param client: The MCPClient instance to use for calling the tool
+        :type client: MCPClient
+        :param tool_info: The tool definition from the MCP server
+        :type tool_info: Any
+        """
         self.client = client
         self.name = tool_info.name
         self.description = tool_info.description
@@ -100,7 +119,12 @@ class ToolWrapper:
 
 
 class ToolBox:
-    def __init__(self, mcp_servers_config: dict = None):
+    def __init__(self, mcp_servers_config: Optional[dict] = None) -> None:
+        """Initialize ToolBox.
+        
+        :param mcp_servers_config: Configuration dictionary for MCP servers
+        :type mcp_servers_config: Optional[dict]
+        """
         self.clients = []
         if mcp_servers_config:
             for name, server_config in mcp_servers_config.items():
@@ -110,8 +134,12 @@ class ToolBox:
 
     def load_tools(self) -> List[Callable]:
         """
-        Connects to the MCP servers, fetches available tools, and returns
-        a list of callable python functions that proxy to the servers.
+        Connect to MCP servers and retrieve available tools.
+
+        Fetches tools from all configured clients and wraps them as callable
+        Python functions.
+
+        :return: A list of callable tool wrappers.
         """
         all_wrappers = []
         for client in self.clients:
@@ -123,8 +151,3 @@ class ToolBox:
                 print(f"Error loading tools from client {client.server_url}: {e}", file=sys.stderr)
         
         return all_wrappers
-# Backward compatibility / Convenience
-# Calling load_tools() at import time might fail if server is down,
-# but passing functions is required.
-# We will not execute it at top level to avoid import side effects,
-# but agent/main.py will need to call load_tools().

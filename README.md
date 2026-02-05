@@ -21,9 +21,13 @@ ollama_mcp/
 │   ├── agent.py            # Core Agent class
 │   ├── main.py             # Entry point for the Agent
 │   └── toolbox.py          # MCP Tool handling
-├── tools/                  # MCP Server ( The Tools )
-│   ├── main.py             # Entry point for the MCP Server
-│   └── tools.py            # Tool definitions (weather, date)
+├── tools/                  # DEPRECATED (Split into search_tools/ and weather_tools/)
+├── search_tools/           # MCP Server for Search Tools
+│   ├── main.py             # Entry point
+│   └── tools.py            # Search tool definitions
+├── weather_tools/          # MCP Server for Weather Tools
+│   ├── main.py             # Entry point
+│   └── tools.py            # Weather tool definitions
 ├── mcp_server_config.json  # Configuration for connecting Agent to Tools
 ├── dockers/
 │   ├── Dockerfile          # Shared container image
@@ -48,7 +52,7 @@ ollama_mcp/
    ```
 
 2. **Start the services**:
-   This will start the Ollama container, the Tools Server, and the Agent.
+   This will start the Ollama container, the Weather Tools Server, the Search Tools Server, and the Agent.
    ```bash
    docker-compose -f dockers/docker-compose.yml up -d
    ```
@@ -69,7 +73,7 @@ ollama_mcp/
    
    If you want to run the agent interactively inside the container:
    ```bash
-   docker-compose -f dockers/docker-compose.yml run --rm tools python /workspaces/ollama_mcp/agent/main.py
+   docker-compose -f dockers/docker-compose.yml run --rm app python /workspaces/ollama_mcp/agent/main.py
    ```
    *(Assuming the environment allows connecting to the running tools service)*
 
@@ -80,20 +84,31 @@ ollama_mcp/
    pip install -r requirements.txt
    ```
 
-2. **Start the Tools Server**:
-   Open a terminal and run:
+2. **Start the Tools Servers**:
+   Open two terminal windows/tabs.
+
+   Terminal 1 (Weather Tools):
    ```bash
-   python tools/main.py
+   python weather_tools/main.py
    ```
-   This starts the MCP Server on port 8000.
+   (Starts on port 8000)
+
+   Terminal 2 (Search Tools):
+   ```bash
+   python search_tools/main.py
+   ```
+   (Starts on port 8001)
 
 3. **Configure the Agent**:
-   Edit `mcp_server_config.json` to point to your local server instead of the docker hostname:
+   Edit `mcp_server_config.json` to point to your local servers:
    ```json
    {
      "mcpServers": {
-       "default": {
+       "weather_tools": {
          "url": "http://localhost:8000/sse"
+       },
+       "search_tools": {
+         "url": "http://localhost:8001/sse"
        }
      }
    }
@@ -107,22 +122,21 @@ ollama_mcp/
 
 ## 🛠️ Available Tools
 
-Tools are provided by the MCP Server in `tools/`:
+Tools are provided by the MCP Servers:
 
-### `get_weather(lat, lon, start_date, end_date)`
-Fetches historical weather data from the Open-Meteo Archive API.
+### Weather Tools (`weather_tools/`)
+- **`get_weather(lat, lon, start_date, end_date)`**: Fetches historical weather data from the Open-Meteo Archive API.
+- **`current_date()`**: Returns the current date.
 
-### `current_date()`
-Returns the current date.
+### Search Tools (`search_tools/`)
+- **`web_search(query, num_results)`**: Search the web for a query using DuckDuckGo HTML endpoint (no JS required).
+- **`fetch_url(url, max_length)`**: Fetch content from a URL and return clean text content (removes scripts/styles).
 
 ## 🔧 Customization
 
 ### Adding New Tools
-1. Define the function in `tools/tools.py`.
-2. Register it in `tools/main.py`:
-   ```python
-   mcp.add_tool(tools.my_new_tool)
-   ```
+1. Define the function in `search_tools/tools.py` or `weather_tools/tools.py` (or create a new server).
+2. Register it in the respective `main.py`.
 3. Restart the Tools Server. The Agent will automatically discover the new tool on next startup.
 
 ## 📦 Dependencies
